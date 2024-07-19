@@ -1,0 +1,97 @@
+# For the performance let's use some metrics from SKLEARN module
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+  
+print("The accuracy is", accuracy_score(y_test, y_pred)) 
+print("The precision is", precision_score(y_test, y_pred))
+print("The recall is", recall_score(y_test, y_pred))
+print("The F1 score is", f1_score(y_test, y_pred))
+
+#read the dataset
+dataset = pd.read_csv("/content/creditcard.csv")
+# read the first 5 and last 5 rows of the data
+pd.concat([dataset.head(), dataset.tail()])
+
+  #output
+  Time	V1	V2	V3	V4	V5	V6	V7	V8	V9	...	V21	V22	V23	V24	V25	V26	V27	V28	Amount	Class
+0	0	-1.359807	-0.072781	2.536347	1.378155	-0.338321	0.462388	0.239599	0.098698	0.363787	...	-0.018307	0.277838	-0.110474	0.066928	0.128539	-0.189115	0.133558	-0.021053	149.62	0.0
+1	0	1.191857	0.266151	0.166480	0.448154	0.060018	-0.082361	-0.078803	0.085102	-0.255425	...	-0.225775	-0.638672	0.101288	-0.339846	0.167170	0.125895	-0.008983	0.014724	2.69	0.0
+2	1	-1.358354	-1.340163	1.773209	0.379780	-0.503198	1.800499	0.791461	0.247676	-1.514654	...	0.247998	0.771679	0.909412	-0.689281	-0.327642	-0.139097	-0.055353	-0.059752	378.66	0.0
+3	1	-0.966272	-0.185226	1.792993	-0.863291	-0.010309	1.247203	0.237609	0.377436	-1.387024	...	-0.108300	0.005274	-0.190321	-1.175575	0.647376	-0.221929	0.062723	0.061458	123.50	0.0
+4	2	-1.158233	0.877737	1.548718	0.403034	-0.407193	0.095921	0.592941	-0.270533	0.817739	...	-0.009431	0.798278	-0.137458	0.141267	-0.206010	0.502292	0.219422	0.215153	69.99	0.0
+19893	30631	-0.377215	0.973528	1.647077	0.732439	0.024728	-0.541379	0.828488	-0.060740	-0.725148	...	0.228443	0.685913	-0.107687	0.631740	0.126366	-0.327633	0.056522	0.033139	29.90	0.0
+19894	30631	1.209281	0.078793	0.061820	0.593730	-0.235772	-0.448524	-0.141196	0.089236	0.411825	...	-0.302369	-0.984051	0.130401	-0.390756	0.105615	0.152881	-0.025292	0.021130	16.00	0.0
+19895	30632	1.286596	-1.450336	0.814530	-1.308949	-2.055209	-0.592064	-1.317286	0.032386	-1.720017	...	0.040743	0.262534	-0.045112	0.515660	0.218606	-0.138794	0.026395	0.030885	92.00	0.0
+19896	30633	-0.488090	1.018448	0.670593	-0.245462	0.828347	-0.233102	0.662586	-0.040028	-0.279439	...	-0.344859	-0.902035	-0.050171	-1.060827	0.062221	0.150428	0.130266	0.067290	1.99	0.0
+19897	30633	-2.609841	2.479357	0.763844	0.044509	-0.645716	0.762867	-1.626415	-7.617854	1.399746	...	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN
+10 rows × 31 columns
+
+
+  # check for relative proportion 
+print("Fraudulent Cases: " + str(len(dataset[dataset["Class"] == 1])))
+print("Valid Transactions: " + str(len(dataset[dataset["Class"] == 0])))
+print("Proportion of Fraudulent Cases: " + str(len(dataset[dataset["Class"] == 1])/ dataset.shape[0]))
+
+# To see how small are the number of Fraud transactions
+data_p = dataset.copy()
+data_p[" "] = np.where(data_p["Class"] == 1 ,  "Fraud", "Genuine")
+
+# plot a pie chart
+data_p[" "].value_counts().plot(kind="pie")
+
+Fraudulent Cases: 85
+Valid Transactions: 19812
+Proportion of Fraudulent Cases: 0.004271786109156699
+<Axes: ylabel='count'>
+# plot the named features 
+f, axes = plt.subplots(1, 2, figsize=(18,4), sharex = True)
+
+amount_value = dataset['Amount'].values # values
+time_value = dataset['Time'].values # values
+
+sns.distplot(amount_value, hist=False, color="m", kde_kws={"shade": True}, ax=axes[0]).set_title('Distribution of Amount')
+sns.distplot(time_value, hist=False, color="m", kde_kws={"shade": True}, ax=axes[1]).set_title('Distribution of Time')
+
+plt.show()
+
+print("Average Amount in a Fraudulent Transaction: " + str(dataset[dataset["Class"] == 1]["Amount"].mean()))
+print("Average Amount in a Valid Transaction: " + str(dataset[dataset["Class"] == 0]["Amount"].mean()))
+
+#output
+Average Amount in a Fraudulent Transaction: 93.86964705882353
+Average Amount in a Valid Transaction: 70.16985463355542
+
+print("Summary of the feature - Amount" + "\n-------------------------------")
+print(dataset["Amount"].describe())
+
+#output
+Summary of the feature - Amount
+-------------------------------
+count    19897.000000
+mean        70.271100
+std        205.363789
+min          0.000000
+25%          5.750000
+50%         16.000000
+75%         59.980000
+max       7879.420000
+Name: Amount, dtype: float64
+
+# Reorder the columns Amount, Time then the rest
+data_plot = dataset.copy()
+amount = data_plot['Amount']
+data_plot.drop(labels=['Amount'], axis=1, inplace = True)
+data_plot.insert(0, 'Amount', amount)
+
+# Plot the distributions of the features
+columns = data_plot.iloc[:,0:30].columns
+plt.figure(figsize=(12,30*4))
+grids = gridspec.GridSpec(30, 1)
+for grid, index in enumerate(data_plot[columns]):
+ ax = plt.subplot(grids[grid])
+ sns.distplot(data_plot[index][data_plot.Class == 1], hist=False, kde_kws={"shade": True}, bins=50)
+ sns.distplot(data_plot[index][data_plot.Class == 0], hist=False, kde_kws={"shade": True}, bins=50)
+ ax.set_xlabel("")
+ ax.set_title("Distribution of Column: "  + str(index))
+plt.show()
+
+
